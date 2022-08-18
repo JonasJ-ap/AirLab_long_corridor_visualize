@@ -7,6 +7,7 @@ project(uncertainty_visual)
 # # Find catkin macros and libraries
 # # if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 # # is used, also find other catkin packages
+find_package(PCL REQUIRED common octree io visualization segmentation)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
@@ -123,6 +124,7 @@ catkin_package(
 include_directories(
 
   # include
+  ${PCL_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
 
