@@ -8,6 +8,7 @@
 #include <nav_msgs/Odometry.h>
 #include <pcl/filters/passthrough.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include <visualization_msgs/Marker.h>
 
 ros::Publisher uncertainty_x_pub;
 ros::Publisher uncertainty_y_pub;
@@ -16,9 +17,11 @@ ros::Publisher uncertainty_roll_pub;
 ros::Publisher uncertainty_pitch_pub;
 ros::Publisher uncertainty_yaw_pub;
 ros::Publisher pose_cov_pub;
+ros::Publisher uncertainty_shape_pub;
 ros::Publisher rc2_speed_pub;
 double frequency = 5;
 Eigen::Vector3d rc2_prev_pt;
+double small_offset = 0.0001;
 
 void super_odom_stat_callback(
     const super_odometry_msgs::OptimizationStats::ConstPtr &msg,
@@ -77,6 +80,30 @@ void super_odom_stat_callback(
   rc2_prev_pt(1) = rc2_pt(1);
   rc2_prev_pt(2) = rc2_pt(2);
   rc2_speed_pub.publish(rc2_speed);
+
+  // update uncertainty shape
+  visualization_msgs::Marker marker;
+  marker.header.frame_id = "cmu_rc2_sensor_init";
+  marker.header.stamp = odom->header.stamp;
+  marker.ns = "uncertainty_shape";
+  marker.id = 0;
+  marker.type = visualization_msgs::Marker::SPHERE;
+  marker.action = visualization_msgs::Marker::ADD;
+  marker.pose.position.x = odom->pose.pose.position.x;
+  marker.pose.position.y = odom->pose.pose.position.y;
+  marker.pose.position.z = odom->pose.pose.position.z;
+  marker.pose.orientation.x = 0.0;
+  marker.pose.orientation.y = 0.0;
+  marker.pose.orientation.z = 0.0;
+  marker.pose.orientation.w = 1.0;
+  marker.scale.x = (1 - msg->uncertainty_x) + small_offset;
+  marker.scale.y = (1 - msg->uncertainty_y) + small_offset;
+  marker.scale.z = (1 - msg->uncertainty_z) + small_offset;
+  marker.color.a = 0.5;
+  marker.color.r = 0;
+  marker.color.g = 1.0;
+  marker.color.b = 0;
+  uncertainty_shape_pub.publish(marker);
 }
 
 int main(int argc, char **argv) {
@@ -93,6 +120,8 @@ int main(int argc, char **argv) {
   pose_cov_pub =
       nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/pose_cov", 10);
   rc2_speed_pub = nh.advertise<std_msgs::Float32>("/cmu_rc2/speed_custom", 10);
+  uncertainty_shape_pub =
+      nh.advertise<visualization_msgs::Marker>("/uncertainty_shape", 10);
   // ros::Subscriber super_stats_sub =
   // nh.subscribe("/cmu_rc2/super_odometry_stats", 10,
   // &super_odom_stat_callback);
