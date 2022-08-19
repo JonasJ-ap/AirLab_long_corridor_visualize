@@ -3,11 +3,13 @@
 #include "std_msgs/Float32.h"
 #include "std_msgs/Float64.h"
 #include "super_odometry_msgs/OptimizationStats.h"
+#include <jsk_rviz_plugins/OverlayText.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <nav_msgs/Odometry.h>
 #include <pcl/filters/passthrough.h>
 #include <pcl_conversions/pcl_conversions.h>
+#include <std_msgs/String.h>
 #include <visualization_msgs/Marker.h>
 
 ros::Publisher uncertainty_x_pub;
@@ -19,6 +21,8 @@ ros::Publisher uncertainty_yaw_pub;
 ros::Publisher pose_cov_pub;
 ros::Publisher uncertainty_shape_pub;
 ros::Publisher rc2_speed_pub;
+ros::Publisher prediction_pub;
+ros::Publisher constraint_pub;
 double frequency = 5;
 Eigen::Vector3d rc2_prev_pt;
 double small_offset = 1;
@@ -85,7 +89,7 @@ void super_odom_stat_callback(
   visualization_msgs::Marker marker;
   marker.header.frame_id = "cmu_rc2_sensor_init";
   marker.header.stamp = odom->header.stamp;
-  marker.ns = "uncertainty_shape";
+  marker.ns = "uncertainty_x";
   marker.id = 0;
   marker.type = visualization_msgs::Marker::SPHERE;
   marker.action = visualization_msgs::Marker::ADD;
@@ -97,13 +101,85 @@ void super_odom_stat_callback(
   marker.pose.orientation.z = odom->pose.pose.orientation.z;
   marker.pose.orientation.w = odom->pose.pose.orientation.w;
   marker.scale.x = (1 - msg->uncertainty_x) + small_offset;
-  marker.scale.y = (1 - msg->uncertainty_y) + small_offset;
-  marker.scale.z = (1 - msg->uncertainty_z) + small_offset;
+  marker.scale.y = 1;
+  marker.scale.z = 1;
   marker.color.a = 0.5;
-  marker.color.r = 0;
-  marker.color.g = 1.0;
+  marker.color.r = 1.0;
+  marker.color.g = 0;
   marker.color.b = 0;
+
+  visualization_msgs::Marker marker2;
+  marker2.header.frame_id = "cmu_rc2_sensor_init";
+  marker2.header.stamp = odom->header.stamp;
+  marker2.ns = "uncertainty_y";
+  marker2.id = 1;
+  marker2.type = visualization_msgs::Marker::SPHERE;
+  marker2.action = visualization_msgs::Marker::ADD;
+  marker2.pose.position.x = odom->pose.pose.position.x;
+  marker2.pose.position.y = odom->pose.pose.position.y;
+  marker2.pose.position.z = odom->pose.pose.position.z;
+  marker2.pose.orientation.x = odom->pose.pose.orientation.x;
+  marker2.pose.orientation.y = odom->pose.pose.orientation.y;
+  marker2.pose.orientation.z = odom->pose.pose.orientation.z;
+  marker2.pose.orientation.w = odom->pose.pose.orientation.w;
+  marker2.scale.x = 1;
+  marker2.scale.y = (1 - msg->uncertainty_y) + small_offset;
+  marker2.scale.z = 1;
+  marker2.color.a = 0.5;
+  marker2.color.r = 0;
+  marker2.color.g = 1.0;
+  marker2.color.b = 0;
+
+  visualization_msgs::Marker marker3;
+  marker3.header.frame_id = "cmu_rc2_sensor_init";
+  marker3.header.stamp = odom->header.stamp;
+  marker3.ns = "uncertainty_z";
+  marker3.id = 2;
+  marker3.type = visualization_msgs::Marker::SPHERE;
+  marker3.action = visualization_msgs::Marker::ADD;
+  marker3.pose.position.x = odom->pose.pose.position.x;
+  marker3.pose.position.y = odom->pose.pose.position.y;
+  marker3.pose.position.z = odom->pose.pose.position.z;
+  marker3.pose.orientation.x = odom->pose.pose.orientation.x;
+  marker3.pose.orientation.y = odom->pose.pose.orientation.y;
+  marker3.pose.orientation.z = odom->pose.pose.orientation.z;
+  marker3.pose.orientation.w = odom->pose.pose.orientation.w;
+  marker3.scale.x = 1;
+  marker3.scale.y = 1;
+  marker3.scale.z = (1 - msg->uncertainty_z) + small_offset;
+  marker3.color.a = 0.5;
+  marker3.color.r = 0;
+  marker3.color.g = 0;
+  marker3.color.b = 1.0;
+
   uncertainty_shape_pub.publish(marker);
+  uncertainty_shape_pub.publish(marker2);
+  uncertainty_shape_pub.publish(marker3);
+}
+
+void message_callback(const std_msgs::StringConstPtr &msg) {
+  jsk_rviz_plugins::OverlayText msg_overlay;
+  if (msg->data == "IMU Prediction Constrained by Laser") {
+    msg_overlay.text = "by Laser";
+    msg_overlay.fg_color.r = 0.0;
+    msg_overlay.fg_color.g = 1.0;
+    msg_overlay.fg_color.b = 0.0;
+    msg_overlay.fg_color.a = 1.0;
+  } else if (msg->data == "IMU Prediction Constrained by Visual") {
+    msg_overlay.text = "by Visual";
+    msg_overlay.fg_color.r = 1.0;
+    msg_overlay.fg_color.g = 0.0;
+    msg_overlay.fg_color.b = 1.0;
+    msg_overlay.fg_color.a = 1.0;
+  } else {
+    msg_overlay.text = "No Match";
+  }
+  msg_overlay.bg_color.a = 0.0;
+  msg_overlay.font = "DejaVu Sans Mono";
+  constraint_pub.publish(msg_overlay);
+  std_msgs::String msg_string;
+  msg_string.data = "IMU Prediction Constrained ";
+  prediction_pub.publish(msg_string);
 }
 
 int main(int argc, char **argv) {
@@ -122,9 +198,14 @@ int main(int argc, char **argv) {
   rc2_speed_pub = nh.advertise<std_msgs::Float32>("/cmu_rc2/speed_custom", 10);
   uncertainty_shape_pub =
       nh.advertise<visualization_msgs::Marker>("/uncertainty_shape", 10);
+  prediction_pub = nh.advertise<std_msgs::String>("/prediction", 10);
+  constraint_pub =
+      nh.advertise<jsk_rviz_plugins::OverlayText>("/constraint", 10);
   // ros::Subscriber super_stats_sub =
   // nh.subscribe("/cmu_rc2/super_odometry_stats", 10,
   // &super_odom_stat_callback);
+  ros::Subscriber prediction_sub =
+      nh.subscribe("/cmu_rc2/prediction_source", 10, &message_callback);
   message_filters::Subscriber<super_odometry_msgs::OptimizationStats> stats_sub(
       nh, "/cmu_rc2/super_odometry_stats", 10);
   message_filters::Subscriber<nav_msgs::Odometry> odom_sub(

@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
   message_generation
   message_filters
+  jsk_rviz_plugins
 )
 
 # # System dependencies are found with CMake's conventions
