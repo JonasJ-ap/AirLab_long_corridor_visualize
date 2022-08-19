@@ -21,7 +21,7 @@ ros::Publisher uncertainty_shape_pub;
 ros::Publisher rc2_speed_pub;
 double frequency = 5;
 Eigen::Vector3d rc2_prev_pt;
-double small_offset = 0.0001;
+double small_offset = 1;
 
 void super_odom_stat_callback(
     const super_odometry_msgs::OptimizationStats::ConstPtr &msg,
@@ -92,10 +92,10 @@ void super_odom_stat_callback(
   marker.pose.position.x = odom->pose.pose.position.x;
   marker.pose.position.y = odom->pose.pose.position.y;
   marker.pose.position.z = odom->pose.pose.position.z;
-  marker.pose.orientation.x = 0.0;
-  marker.pose.orientation.y = 0.0;
-  marker.pose.orientation.z = 0.0;
-  marker.pose.orientation.w = 1.0;
+  marker.pose.orientation.x = odom->pose.pose.orientation.x;
+  marker.pose.orientation.y = odom->pose.pose.orientation.y;
+  marker.pose.orientation.z = odom->pose.pose.orientation.z;
+  marker.pose.orientation.w = odom->pose.pose.orientation.w;
   marker.scale.x = (1 - msg->uncertainty_x) + small_offset;
   marker.scale.y = (1 - msg->uncertainty_y) + small_offset;
   marker.scale.z = (1 - msg->uncertainty_z) + small_offset;
