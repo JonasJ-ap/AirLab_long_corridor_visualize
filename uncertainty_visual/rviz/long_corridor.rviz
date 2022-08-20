@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /Odometry1
+        - /Odometry1/Shape1
         - /uncertainties1/confidence_x1
         - /uncertainties1/confidence_y1
         - /uncertainties1/confidence_z1
@@ -66,7 +67,7 @@ Visualization Manager:
       Queue Size: 10
       Shape:
         Alpha: 1
-        Axes Length: 1
+        Axes Length: 1.5
         Axes Radius: 0.10000000149011612
         Color: 255; 25; 0
         Head Length: 0.30000001192092896
@@ -94,14 +95,14 @@ Visualization Manager:
           foreground alpha: 0.699999988079071
           foreground color: 255; 255; 255
           height: 147
-          left: 1680
+          left: 1685
           linewidth: 1
           max color: 255; 0; 0
           max value: 10
           min value: -10
           show caption: true
           text size: 10
-          top: 20
+          top: 164
           update interval: 0.03999999910593033
           width: 141
         - Buffer length: 90
@@ -119,14 +120,14 @@ Visualization Manager:
           foreground alpha: 0.699999988079071
           foreground color: 255; 255; 255
           height: 147
-          left: 1840
+          left: 1845
           linewidth: 1
           max color: 255; 0; 0
           max value: 10
           min value: -10
           show caption: true
           text size: 10
-          top: 20
+          top: 165
           update interval: 0.03999999910593033
           width: 141
         - Buffer length: 100
@@ -144,14 +145,14 @@ Visualization Manager:
           foreground alpha: 0.699999988079071
           foreground color: 255; 255; 255
           height: 147
-          left: 2000
+          left: 2006
           linewidth: 1
           max color: 255; 0; 0
           max value: 10
           min value: -10
           show caption: true
           text size: 10
-          top: 20
+          top: 166
           update interval: 0.03999999910593033
           width: 141
         - Buffer length: 100
@@ -169,14 +170,14 @@ Visualization Manager:
           foreground alpha: 0.699999988079071
           foreground color: 255; 255; 255
           height: 147
-          left: 1840
+          left: 1846
           linewidth: 1
           max color: 255; 0; 0
           max value: 10
           min value: -10
           show caption: true
           text size: 10
-          top: 200
+          top: 341
           update interval: 0.03999999910593033
           width: 141
         - Buffer length: 100
@@ -194,14 +195,14 @@ Visualization Manager:
           foreground alpha: 0.699999988079071
           foreground color: 255; 255; 255
           height: 147
-          left: 1680
+          left: 1684
           linewidth: 1
           max color: 255; 0; 0
           max value: 10
           min value: -10
           show caption: true
           text size: 10
-          top: 200
+          top: 341
           update interval: 0.03999999910593033
           width: 141
         - Buffer length: 100
@@ -219,14 +220,14 @@ Visualization Manager:
           foreground alpha: 0.699999988079071
           foreground color: 255; 255; 255
           height: 147
-          left: 2000
+          left: 2006
           linewidth: 1
           max color: 255; 0; 0
           max value: 10
           min value: -10
           show caption: true
           text size: 10
-          top: 200
+          top: 341
           update interval: 0.03999999910593033
           width: 141
       Enabled: true
@@ -243,7 +244,7 @@ Visualization Manager:
       foreground alpha: 0.699999988079071
       foreground alpha 2: 0.4000000059604645
       foreground color: 25; 255; 240
-      left: 1800
+      left: 1808
       max color: 255; 0; 0
       max color change threthold: 0
       max value: 5
@@ -253,29 +254,28 @@ Visualization Manager:
       show caption: true
       size: 200
       text size: 25
-      top: 380
+      top: 703
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /uncertainty_shape
       Name: Marker
       Namespaces:
         uncertainty_x: true
-        uncertainty_y: true
         uncertainty_z: true
       Queue Size: 100
       Value: true
-    - Alpha: 0.5
+    - Alpha: 0.10000000149011612
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 2.2990052700042725
-        Min Value: -0.48490431904792786
+        Max Value: 2.4173076152801514
+        Min Value: -0.49002933502197266
         Value: true
       Axis: Z
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 255; 255; 255
-      Color Transformer: FlatColor
-      Decay Time: 1
+      Color Transformer: AxisColor
+      Decay Time: 300
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
@@ -285,7 +285,7 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.009999999776482582
+      Size (m): 0.019999999552965164
       Style: Flat Squares
       Topic: /cmu_rc2/velodyne_cloud_registered_imu
       Unreliable: false
@@ -328,7 +328,7 @@ Visualization Manager:
       left: 670
       line width: 2
       text size: 25
-      top: 1050
+      top: 50
       width: 1000
     - Align Bottom: false
       Background Alpha: 0.800000011920929
@@ -349,23 +349,23 @@ Visualization Manager:
       left: 1205
       line width: 2
       text size: 25
-      top: 1050
+      top: 50
       width: 200
     - Class: jsk_rviz_plugin/VideoCapture
       Enabled: true
       Name: VideoCapture
       Value: true
-      filename: final_output.avi
+      filename: final_output2.avi
       fps: 30
       height: 1080
       start capture: false
       use 3D viewer size: true
       width: 1920
     - Class: jsk_rviz_plugin/OverlayImage
-      Enabled: true
+      Enabled: false
       Name: OverlayImage
       Topic: /cmu_rc2/camera_1/image_raw
-      Value: true
+      Value: false
       alpha: 1
       height: 300
       keep aspect ratio: false
@@ -403,7 +403,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 13.589385986328125
+      Distance: 15.850170135498047
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -411,17 +411,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.931718111038208
-        Y: 3.801156997680664
-        Z: 8.704916581336875e-06
+        X: -1.7377657890319824
+        Y: -1.0085647106170654
+        Z: 0.0014764860970899463
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6753982901573181
-      Target Frame: cmu_rc2_vehicle
-      Yaw: 1.5403975248336792
+      Pitch: 0.580398440361023
+      Target Frame: cmu_rc2_sensor
+      Yaw: 3.1004159450531006
     Saved: ~
 Window Geometry:
   Displays:

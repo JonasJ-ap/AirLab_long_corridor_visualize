@@ -103,10 +103,11 @@ void super_odom_stat_callback(
   marker.scale.x = (1 - msg->uncertainty_x) + small_offset;
   marker.scale.y = 1;
   marker.scale.z = 1;
-  marker.color.a = 0.5;
+  marker.color.a = 1;
   marker.color.r = 1.0;
   marker.color.g = 0;
   marker.color.b = 0;
+  marker.lifetime = ros::Duration(0.2);
 
   visualization_msgs::Marker marker2;
   marker2.header.frame_id = "cmu_rc2_sensor_init";
@@ -125,10 +126,11 @@ void super_odom_stat_callback(
   marker2.scale.x = 1;
   marker2.scale.y = (1 - msg->uncertainty_y) + small_offset;
   marker2.scale.z = 1;
-  marker2.color.a = 0.5;
+  marker2.color.a = 1;
   marker2.color.r = 0;
   marker2.color.g = 1.0;
   marker2.color.b = 0;
+  marker2.lifetime = ros::Duration(0.2);
 
   visualization_msgs::Marker marker3;
   marker3.header.frame_id = "cmu_rc2_sensor_init";
@@ -147,14 +149,27 @@ void super_odom_stat_callback(
   marker3.scale.x = 1;
   marker3.scale.y = 1;
   marker3.scale.z = (1 - msg->uncertainty_z) + small_offset;
-  marker3.color.a = 0.5;
+  marker3.color.a = 1;
   marker3.color.r = 0;
   marker3.color.g = 0;
   marker3.color.b = 1.0;
+  marker3.lifetime = ros::Duration(0.2);
 
-  uncertainty_shape_pub.publish(marker);
-  uncertainty_shape_pub.publish(marker2);
-  uncertainty_shape_pub.publish(marker3);
+  if (msg->uncertainty_x < msg->uncertainty_y &&
+      msg->uncertainty_x < msg->uncertainty_z) {
+    uncertainty_shape_pub.publish(marker);
+  } else if (msg->uncertainty_y < msg->uncertainty_x &&
+             msg->uncertainty_y < msg->uncertainty_z) {
+    uncertainty_shape_pub.publish(marker2);
+  } else if (msg->uncertainty_z < msg->uncertainty_x &&
+             msg->uncertainty_z < msg->uncertainty_y) {
+    uncertainty_shape_pub.publish(marker3);
+  } else {
+    uncertainty_shape_pub.publish(marker);
+  }
+  // uncertainty_shape_pub.publish(marker);
+  // uncertainty_shape_pub.publish(marker2);
+  // uncertainty_shape_pub.publish(marker3);
 }
 
 void message_callback(const std_msgs::StringConstPtr &msg) {
