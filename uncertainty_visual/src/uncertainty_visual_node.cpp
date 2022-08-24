@@ -100,13 +100,13 @@ void super_odom_stat_callback(
   marker.pose.orientation.y = odom->pose.pose.orientation.y;
   marker.pose.orientation.z = odom->pose.pose.orientation.z;
   marker.pose.orientation.w = odom->pose.pose.orientation.w;
-  marker.scale.x = (1 - msg->uncertainty_x) + small_offset;
+  marker.scale.x = (1 - msg->uncertainty_x) * 2.5 + small_offset;
   marker.scale.y = 1;
   marker.scale.z = 1;
-  marker.color.a = 1;
-  marker.color.r = 1.0;
-  marker.color.g = 0;
-  marker.color.b = 0;
+  marker.color.a = 0.5;
+  marker.color.r = 242.0 / 255.0;
+  marker.color.g = 75.0 / 255.0;
+  marker.color.b = 231.0 / 255.0;
   marker.lifetime = ros::Duration(0.2);
 
   visualization_msgs::Marker marker2;
@@ -155,19 +155,19 @@ void super_odom_stat_callback(
   marker3.color.b = 1.0;
   marker3.lifetime = ros::Duration(0.2);
 
-  if (msg->uncertainty_x < msg->uncertainty_y &&
-      msg->uncertainty_x < msg->uncertainty_z) {
-    uncertainty_shape_pub.publish(marker);
-  } else if (msg->uncertainty_y < msg->uncertainty_x &&
-             msg->uncertainty_y < msg->uncertainty_z) {
-    uncertainty_shape_pub.publish(marker2);
-  } else if (msg->uncertainty_z < msg->uncertainty_x &&
-             msg->uncertainty_z < msg->uncertainty_y) {
-    uncertainty_shape_pub.publish(marker3);
-  } else {
-    uncertainty_shape_pub.publish(marker);
-  }
-  // uncertainty_shape_pub.publish(marker);
+  // if (msg->uncertainty_x < msg->uncertainty_y &&
+  //     msg->uncertainty_x < msg->uncertainty_z) {
+  //   uncertainty_shape_pub.publish(marker);
+  // } else if (msg->uncertainty_y < msg->uncertainty_x &&
+  //            msg->uncertainty_y < msg->uncertainty_z) {
+  //   // uncertainty_shape_pub.publish(marker2);
+  // } else if (msg->uncertainty_z < msg->uncertainty_x &&
+  //            msg->uncertainty_z < msg->uncertainty_y) {
+  //   // uncertainty_shape_pub.publish(marker3);
+  // } else {
+  //   // uncertainty_shape_pub.publish(marker);
+  // }
+  uncertainty_shape_pub.publish(marker);
   // uncertainty_shape_pub.publish(marker2);
   // uncertainty_shape_pub.publish(marker3);
 }
