@@ -11,6 +11,7 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <std_msgs/String.h>
 #include <visualization_msgs/Marker.h>
+#include "visualization_msgs/MarkerArray.h"
 
 ros::Publisher uncertainty_x_pub;
 ros::Publisher uncertainty_y_pub;
@@ -23,9 +24,14 @@ ros::Publisher uncertainty_shape_pub;
 ros::Publisher rc2_speed_pub;
 ros::Publisher prediction_pub;
 ros::Publisher constraint_pub;
+ros::Publisher uncertainties_pub;
 double frequency = 5;
 Eigen::Vector3d rc2_prev_pt;
 double small_offset = 1;
+visualization_msgs::MarkerArray uncertainty_shapes;
+int count = 0;
+long last_publish_time = 0;
+float min_speed = 0.3;
 
 void super_odom_stat_callback(
     const super_odometry_msgs::OptimizationStats::ConstPtr &msg,
@@ -89,10 +95,25 @@ void super_odom_stat_callback(
   visualization_msgs::Marker marker;
   marker.header.frame_id = "cmu_rc2_sensor_init";
   marker.header.stamp = odom->header.stamp;
-  marker.ns = "uncertainty_x";
+  marker.ns = "uncertainty_x" + std::to_string(count);
   marker.id = 0;
   marker.type = visualization_msgs::Marker::SPHERE;
   marker.action = visualization_msgs::Marker::ADD;
+
+  // apply 90 degree rotation on odom's pitch
+  Eigen::Quaterniond q;
+  q.x() = odom->pose.pose.orientation.x;
+  q.y() = odom->pose.pose.orientation.y;
+  q.z() = odom->pose.pose.orientation.z;
+  q.w() = odom->pose.pose.orientation.w;
+  Eigen::Matrix3d R = q.toRotationMatrix();
+  Eigen::Matrix3d R90;
+  R90 << 1, 0, 0, 0, 0, -1, 0, 1, 0;
+  Eigen::Matrix3d R_new = R90 * R;
+  Eigen::Quaterniond q_new(R_new);
+  
+
+
   marker.pose.position.x = odom->pose.pose.position.x;
   marker.pose.position.y = odom->pose.pose.position.y;
   marker.pose.position.z = odom->pose.pose.position.z;
@@ -103,71 +124,32 @@ void super_odom_stat_callback(
   marker.scale.x = (1 - msg->uncertainty_x) * 2.5 + small_offset;
   marker.scale.y = 1;
   marker.scale.z = 1;
-  marker.color.a = 0.5;
+
+  marker.color.a = 0.1;
+  if (msg->uncertainty_x < 0.2) {
+    marker.color.a = 0.7;
+  }
   marker.color.r = 242.0 / 255.0;
   marker.color.g = 75.0 / 255.0;
   marker.color.b = 231.0 / 255.0;
-  marker.lifetime = ros::Duration(0.2);
+  // marker.color.r = 1.0;
+  // marker.color.g = 0.0;
+  // marker.color.b = 0.0;
+  marker.lifetime = ros::Duration(500);
 
-  visualization_msgs::Marker marker2;
-  marker2.header.frame_id = "cmu_rc2_sensor_init";
-  marker2.header.stamp = odom->header.stamp;
-  marker2.ns = "uncertainty_y";
-  marker2.id = 1;
-  marker2.type = visualization_msgs::Marker::SPHERE;
-  marker2.action = visualization_msgs::Marker::ADD;
-  marker2.pose.position.x = odom->pose.pose.position.x;
-  marker2.pose.position.y = odom->pose.pose.position.y;
-  marker2.pose.position.z = odom->pose.pose.position.z;
-  marker2.pose.orientation.x = odom->pose.pose.orientation.x;
-  marker2.pose.orientation.y = odom->pose.pose.orientation.y;
-  marker2.pose.orientation.z = odom->pose.pose.orientation.z;
-  marker2.pose.orientation.w = odom->pose.pose.orientation.w;
-  marker2.scale.x = 1;
-  marker2.scale.y = (1 - msg->uncertainty_y) + small_offset;
-  marker2.scale.z = 1;
-  marker2.color.a = 1;
-  marker2.color.r = 0;
-  marker2.color.g = 1.0;
-  marker2.color.b = 0;
-  marker2.lifetime = ros::Duration(0.2);
-
-  visualization_msgs::Marker marker3;
-  marker3.header.frame_id = "cmu_rc2_sensor_init";
-  marker3.header.stamp = odom->header.stamp;
-  marker3.ns = "uncertainty_z";
-  marker3.id = 2;
-  marker3.type = visualization_msgs::Marker::SPHERE;
-  marker3.action = visualization_msgs::Marker::ADD;
-  marker3.pose.position.x = odom->pose.pose.position.x;
-  marker3.pose.position.y = odom->pose.pose.position.y;
-  marker3.pose.position.z = odom->pose.pose.position.z;
-  marker3.pose.orientation.x = odom->pose.pose.orientation.x;
-  marker3.pose.orientation.y = odom->pose.pose.orientation.y;
-  marker3.pose.orientation.z = odom->pose.pose.orientation.z;
-  marker3.pose.orientation.w = odom->pose.pose.orientation.w;
-  marker3.scale.x = 1;
-  marker3.scale.y = 1;
-  marker3.scale.z = (1 - msg->uncertainty_z) + small_offset;
-  marker3.color.a = 1;
-  marker3.color.r = 0;
-  marker3.color.g = 0;
-  marker3.color.b = 1.0;
-  marker3.lifetime = ros::Duration(0.2);
-
-  // if (msg->uncertainty_x < msg->uncertainty_y &&
-  //     msg->uncertainty_x < msg->uncertainty_z) {
-  //   uncertainty_shape_pub.publish(marker);
-  // } else if (msg->uncertainty_y < msg->uncertainty_x &&
-  //            msg->uncertainty_y < msg->uncertainty_z) {
-  //   // uncertainty_shape_pub.publish(marker2);
-  // } else if (msg->uncertainty_z < msg->uncertainty_x &&
-  //            msg->uncertainty_z < msg->uncertainty_y) {
-  //   // uncertainty_shape_pub.publish(marker3);
-  // } else {
-  //   // uncertainty_shape_pub.publish(marker);
+  // if (((long) odom->header.stamp.toSec()) % 5  == 0) {
+  //   if (((long) odom->header.stamp.toSec()) > last_publish_time) {
+  //     uncertainty_shapes.markers.push_back(marker);
+  //     last_publish_time = (long) odom->header.stamp.toSec();
+  //     count += 1;
+  //   }
   // }
-  uncertainty_shape_pub.publish(marker);
+  if (rc2_speed.data > min_speed) {
+    uncertainty_shapes.markers.push_back(marker);
+    count += 1;
+  }
+  uncertainties_pub.publish(uncertainty_shapes);
+  // uncertainty_shape_pub.publish(marker);
   // uncertainty_shape_pub.publish(marker2);
   // uncertainty_shape_pub.publish(marker3);
 }
@@ -216,6 +198,7 @@ int main(int argc, char **argv) {
   prediction_pub = nh.advertise<std_msgs::String>("/prediction", 10);
   constraint_pub =
       nh.advertise<jsk_rviz_plugins::OverlayText>("/constraint", 10);
+  uncertainties_pub = nh.advertise<visualization_msgs::MarkerArray>("uncertainties", 10);
   // ros::Subscriber super_stats_sub =
   // nh.subscribe("/cmu_rc2/super_odometry_stats", 10,
   // &super_odom_stat_callback);
