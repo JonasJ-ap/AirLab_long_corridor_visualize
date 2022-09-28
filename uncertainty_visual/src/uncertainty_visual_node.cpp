@@ -31,9 +31,10 @@ double small_offset = 1;
 visualization_msgs::MarkerArray uncertainty_shapes;
 int count = 0;
 long last_publish_time = 0;
-float min_speed = 0.3;
 float move_since_last_mark = 0;
-float marker_dist_interval = 2;
+
+float min_speed;
+float marker_dist_interval;
 float marker_size;
 
 double color1_r;
@@ -162,14 +163,16 @@ void super_odom_stat_callback(
 
 
   if (move_since_last_mark >= marker_dist_interval) {
-    if (msg->uncertainty_x < 0.2) {
+     if (rc2_speed.data > min_speed) {
+      if (msg->PredictionSource  == 0) {
+        // laser
+        uncertainty_shapes.markers.push_back(marker2);
+      } else {
+        // visual
         uncertainty_shapes.markers.push_back(marker);
-        move_since_last_mark = 0;
-    }
-  }
-
-  if (rc2_speed.data > min_speed) {
-    uncertainty_shapes.markers.push_back(marker2);
+      }
+      move_since_last_mark = 0;
+    } 
   }
   uncertainties_pub.publish(uncertainty_shapes);
   // uncertainty_shape_pub.publish(marker);
@@ -207,6 +210,8 @@ int main(int argc, char **argv) {
   ros::NodeHandle nh;
 
   nh.getParam("marker_size", marker_size);
+  nh.getParam("marker_dist_interval", marker_dist_interval);
+  nh.getParam("min_speed", min_speed);
   nh.getParam("color1_r", color1_r);
   nh.getParam("color1_g", color1_g);
   nh.getParam("color1_b", color1_b);
