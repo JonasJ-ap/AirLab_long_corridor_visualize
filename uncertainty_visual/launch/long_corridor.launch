@@ -3,10 +3,12 @@
   <param name="marker_size" type="double" value="2"/>
   <param name="marker_dist_interval" type="double" value="2"/>
   <param name="min_speed" type="double" value="0.3"/>
+
   <param name="color1_r" type="double" value="242.0 "/>
   <param name="color1_g" type="double" value="75.0"/>
   <param name="color1_b" type="double" value="75.0"/>
   <param name="color1_a" type="double" value="1.0"/>
+
   <param name="color2_r" type="double" value="75.0"/>
   <param name="color2_g" type="double" value="242.0"/>
   <param name="color2_b" type="double" value="75.0"/>
