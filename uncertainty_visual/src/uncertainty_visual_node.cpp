@@ -32,6 +32,9 @@ visualization_msgs::MarkerArray uncertainty_shapes;
 int count = 0;
 long last_publish_time = 0;
 float min_speed = 0.3;
+float move_since_last_mark = 0;
+float marker_dist_interval = 2;
+float marker_size = 2;
 
 void super_odom_stat_callback(
     const super_odometry_msgs::OptimizationStats::ConstPtr &msg,
@@ -86,6 +89,8 @@ void super_odom_stat_callback(
 
   std_msgs::Float32 rc2_speed;
   rc2_speed.data = (rc2_pt - rc2_prev_pt).norm() / (1 / frequency);
+  move_since_last_mark += (rc2_pt - rc2_prev_pt).norm();
+  
   rc2_prev_pt(0) = rc2_pt(0);
   rc2_prev_pt(1) = rc2_pt(1);
   rc2_prev_pt(2) = rc2_pt(2);
@@ -96,6 +101,7 @@ void super_odom_stat_callback(
   marker.header.frame_id = "cmu_rc2_sensor_init";
   marker.header.stamp = odom->header.stamp;
   marker.ns = "uncertainty_x" + std::to_string(count);
+  count += 1;
   marker.id = 0;
   marker.type = visualization_msgs::Marker::SPHERE;
   marker.action = visualization_msgs::Marker::ADD;
@@ -121,14 +127,11 @@ void super_odom_stat_callback(
   marker.pose.orientation.y = odom->pose.pose.orientation.y;
   marker.pose.orientation.z = odom->pose.pose.orientation.z;
   marker.pose.orientation.w = odom->pose.pose.orientation.w;
-  marker.scale.x = (1 - msg->uncertainty_x) * 2.5 + small_offset;
-  marker.scale.y = 1;
-  marker.scale.z = 1;
+  marker.scale.x = marker_size;
+  marker.scale.y = marker_size;
+  marker.scale.z = marker_size;
 
-  marker.color.a = 0.1;
-  if (msg->uncertainty_x < 0.2) {
-    marker.color.a = 0.7;
-  }
+  marker.color.a = 1;
   marker.color.r = 242.0 / 255.0;
   marker.color.g = 75.0 / 255.0;
   marker.color.b = 231.0 / 255.0;
@@ -137,16 +140,41 @@ void super_odom_stat_callback(
   // marker.color.b = 0.0;
   marker.lifetime = ros::Duration(500);
 
-  // if (((long) odom->header.stamp.toSec()) % 5  == 0) {
-  //   if (((long) odom->header.stamp.toSec()) > last_publish_time) {
-  //     uncertainty_shapes.markers.push_back(marker);
-  //     last_publish_time = (long) odom->header.stamp.toSec();
-  //     count += 1;
-  //   }
-  // }
+
+  visualization_msgs::Marker marker2;
+  marker2.header = marker.header;
+  marker2.ns = "uncertainty_y" + std::to_string(count);
+  count += 1;
+  marker2.id = 1;
+  marker2.type = visualization_msgs::Marker::SPHERE;
+  marker2.action = visualization_msgs::Marker::ADD;
+  marker2.pose.position.x = odom->pose.pose.position.x;
+  marker2.pose.position.y = odom->pose.pose.position.y;
+  marker2.pose.position.z = odom->pose.pose.position.z;
+  marker2.pose.orientation.x = odom->pose.pose.orientation.x;
+  marker2.pose.orientation.y = odom->pose.pose.orientation.y;
+  marker2.pose.orientation.z = odom->pose.pose.orientation.z;
+  marker2.pose.orientation.w = odom->pose.pose.orientation.w;
+  marker2.scale.x = marker_size;
+  marker2.scale.y = marker_size;
+  marker2.scale.z = marker_size;
+  marker2.color.a = 0.2;
+  marker2.color.r = 242.0 / 255.0;
+  marker2.color.g = 75.0 / 255.0;
+  marker2.color.b = 231.0 / 255.0;
+  marker2.lifetime = ros::Duration(500);
+
+
+
+  if (move_since_last_mark >= marker_dist_interval) {
+    if (msg->uncertainty_x < 0.2) {
+        uncertainty_shapes.markers.push_back(marker);
+        move_since_last_mark = 0;
+    }
+  }
+
   if (rc2_speed.data > min_speed) {
-    uncertainty_shapes.markers.push_back(marker);
-    count += 1;
+    uncertainty_shapes.markers.push_back(marker2);
   }
   uncertainties_pub.publish(uncertainty_shapes);
   // uncertainty_shape_pub.publish(marker);
