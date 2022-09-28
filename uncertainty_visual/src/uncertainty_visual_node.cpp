@@ -34,7 +34,16 @@ long last_publish_time = 0;
 float min_speed = 0.3;
 float move_since_last_mark = 0;
 float marker_dist_interval = 2;
-float marker_size = 2;
+float marker_size;
+
+double color1_r;
+double color1_g;
+double color1_b;
+double color1_a;
+double color2_r;
+double color2_g;
+double color2_b;
+double color2_a;
 
 void super_odom_stat_callback(
     const super_odometry_msgs::OptimizationStats::ConstPtr &msg,
@@ -106,20 +115,6 @@ void super_odom_stat_callback(
   marker.type = visualization_msgs::Marker::SPHERE;
   marker.action = visualization_msgs::Marker::ADD;
 
-  // apply 90 degree rotation on odom's pitch
-  Eigen::Quaterniond q;
-  q.x() = odom->pose.pose.orientation.x;
-  q.y() = odom->pose.pose.orientation.y;
-  q.z() = odom->pose.pose.orientation.z;
-  q.w() = odom->pose.pose.orientation.w;
-  Eigen::Matrix3d R = q.toRotationMatrix();
-  Eigen::Matrix3d R90;
-  R90 << 1, 0, 0, 0, 0, -1, 0, 1, 0;
-  Eigen::Matrix3d R_new = R90 * R;
-  Eigen::Quaterniond q_new(R_new);
-  
-
-
   marker.pose.position.x = odom->pose.pose.position.x;
   marker.pose.position.y = odom->pose.pose.position.y;
   marker.pose.position.z = odom->pose.pose.position.z;
@@ -131,10 +126,10 @@ void super_odom_stat_callback(
   marker.scale.y = marker_size;
   marker.scale.z = marker_size;
 
-  marker.color.a = 1;
-  marker.color.r = 242.0 / 255.0;
-  marker.color.g = 75.0 / 255.0;
-  marker.color.b = 231.0 / 255.0;
+  marker.color.a = color1_a;
+  marker.color.r = color1_r/ 255.0;
+  marker.color.g = color1_g / 255.0;
+  marker.color.b = color1_b / 255.0;
   // marker.color.r = 1.0;
   // marker.color.g = 0.0;
   // marker.color.b = 0.0;
@@ -158,10 +153,10 @@ void super_odom_stat_callback(
   marker2.scale.x = marker_size;
   marker2.scale.y = marker_size;
   marker2.scale.z = marker_size;
-  marker2.color.a = 0.2;
-  marker2.color.r = 242.0 / 255.0;
-  marker2.color.g = 75.0 / 255.0;
-  marker2.color.b = 231.0 / 255.0;
+  marker2.color.a = color2_a;
+  marker2.color.r = color2_r/ 255.0;
+  marker2.color.g = color2_g / 255.0;
+  marker2.color.b = color2_b / 255.0;
   marker2.lifetime = ros::Duration(500);
 
 
@@ -210,6 +205,17 @@ void message_callback(const std_msgs::StringConstPtr &msg) {
 int main(int argc, char **argv) {
   ros::init(argc, argv, "uncertainty_visual_node");
   ros::NodeHandle nh;
+
+  nh.getParam("marker_size", marker_size);
+  nh.getParam("color1_r", color1_r);
+  nh.getParam("color1_g", color1_g);
+  nh.getParam("color1_b", color1_b);
+  nh.getParam("color1_a", color1_a);
+  nh.getParam("color2_r", color2_r);
+  nh.getParam("color2_g", color2_g);
+  nh.getParam("color2_b", color2_b);
+  nh.getParam("color2_a", color2_a);
+
   uncertainty_x_pub = nh.advertise<std_msgs::Float32>("/uncertainty_x", 10);
   uncertainty_y_pub = nh.advertise<std_msgs::Float32>("/uncertainty_y", 10);
   uncertainty_z_pub = nh.advertise<std_msgs::Float32>("/uncertainty_z", 10);
