@@ -1,10 +1,10 @@
 <launch>
 
-  <param name="system_id" type="string" value="cmu_rc2" />
+  <param name="system_id" type="string" value="" />
 
-  <param name="marker_size" type="double" value="2"/>
-  <param name="marker_dist_interval" type="double" value="2"/>
-  <param name="min_speed" type="double" value="0.3"/>
+  <param name="marker_size" type="double" value="1"/>
+  <param name="marker_dist_interval" type="double" value="1"/>
+  <param name="min_speed" type="double" value="0.2"/>
 
   <param name="color1_r" type="double" value="224.0 "/>
   <param name="color1_g" type="double" value="57.0"/>
@@ -16,7 +16,7 @@
   <param name="color2_b" type="double" value="184.0"/>
   <param name="color2_a" type="double" value="1.0"/>
   
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find uncertainty_visual)/rviz/long_corridor.rviz"/>
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find uncertainty_visual)/rviz/multi_floor.rviz"/>
 
   <!-- Subscribes to /cloud and /clouds/* -->
 
