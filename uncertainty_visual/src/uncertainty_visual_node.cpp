@@ -33,6 +33,8 @@ int count = 0;
 long last_publish_time = 0;
 float move_since_last_mark = 0;
 
+std::string system_id;
+
 float min_speed;
 float marker_dist_interval;
 float marker_size;
@@ -106,9 +108,16 @@ void super_odom_stat_callback(
   rc2_prev_pt(2) = rc2_pt(2);
   rc2_speed_pub.publish(rc2_speed);
 
+  std::string system_prefix2;
+  if (system_id == "") {
+    system_prefix2 = "";
+  } else {
+    system_prefix2 = system_id + "_";
+  }
+
   // update uncertainty shape
   visualization_msgs::Marker marker;
-  marker.header.frame_id = "cmu_rc2_sensor_init";
+  marker.header.frame_id = system_prefix2 + "sensor_init";
   marker.header.stamp = odom->header.stamp;
   marker.ns = "uncertainty_x" + std::to_string(count);
   count += 1;
@@ -208,7 +217,7 @@ void message_callback(const std_msgs::StringConstPtr &msg) {
 int main(int argc, char **argv) {
   ros::init(argc, argv, "uncertainty_visual_node");
   ros::NodeHandle nh;
-
+  nh.getParam("system_id", system_id);
   nh.getParam("marker_size", marker_size);
   nh.getParam("marker_dist_interval", marker_dist_interval);
   nh.getParam("min_speed", min_speed);
@@ -220,6 +229,12 @@ int main(int argc, char **argv) {
   nh.getParam("color2_g", color2_g);
   nh.getParam("color2_b", color2_b);
   nh.getParam("color2_a", color2_a);
+  std::string system_prefix;
+  if (system_id == "") {
+    system_prefix = "/";
+  } else {
+    system_prefix = system_id + "/";
+  }
 
   uncertainty_x_pub = nh.advertise<std_msgs::Float32>("/uncertainty_x", 10);
   uncertainty_y_pub = nh.advertise<std_msgs::Float32>("/uncertainty_y", 10);
@@ -231,7 +246,7 @@ int main(int argc, char **argv) {
   uncertainty_yaw_pub = nh.advertise<std_msgs::Float32>("/uncertainty_yaw", 10);
   pose_cov_pub =
       nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/pose_cov", 10);
-  rc2_speed_pub = nh.advertise<std_msgs::Float32>("/cmu_rc2/speed_custom", 10);
+  rc2_speed_pub = nh.advertise<std_msgs::Float32>(system_prefix + "speed_custom", 10);
   uncertainty_shape_pub =
       nh.advertise<visualization_msgs::Marker>("/uncertainty_shape", 10);
   prediction_pub = nh.advertise<std_msgs::String>("/prediction", 10);
@@ -242,11 +257,11 @@ int main(int argc, char **argv) {
   // nh.subscribe("/cmu_rc2/super_odometry_stats", 10,
   // &super_odom_stat_callback);
   ros::Subscriber prediction_sub =
-      nh.subscribe("/cmu_rc2/prediction_source", 10, &message_callback);
+      nh.subscribe(system_prefix + "/prediction_source", 10, &message_callback);
   message_filters::Subscriber<super_odometry_msgs::OptimizationStats> stats_sub(
-      nh, "/cmu_rc2/super_odometry_stats", 10);
+      nh, system_prefix + "super_odometry_stats", 10);
   message_filters::Subscriber<nav_msgs::Odometry> odom_sub(
-      nh, "/cmu_rc2/aft_mapped_to_init_imu", 10);
+      nh, system_prefix + "aft_mapped_to_init_imu", 10);
 
   message_filters::TimeSynchronizer<super_odometry_msgs::OptimizationStats,
                                     nav_msgs::Odometry>
